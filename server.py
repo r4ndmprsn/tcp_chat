@@ -3,6 +3,7 @@ import threading
 
 usernames = {}
 usernamescount = 0
+clients = []
 def client_connection(client_socket, client_ip):
     global usernames
     global usernamescount
@@ -16,7 +17,15 @@ def client_connection(client_socket, client_ip):
             print(f"{usernames[client_ip]} disconnected")
             break
         print(f"{usernames[client_ip]}: {msg.decode()}")
+        message = f"{usernames[client_ip]}: {msg.decode()}"
+        send_to_all(message, client_socket)
     client_socket.close()
+
+def send_to_all(msg, client_socket):
+    for client in clients:
+        if client != client_socket:
+            client.sendall(msg.encode())
+
 def run_server(server_ip = "0.0.0.0", server_port = 8080):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((server_ip,server_port))
@@ -25,6 +34,7 @@ def run_server(server_ip = "0.0.0.0", server_port = 8080):
 
     while True:
         client_socket, client_ip = server_socket.accept()
+        clients.append(client_socket)
         client_thread = threading.Thread(target=client_connection, args=(client_socket, client_ip))
         client_thread.start()
 
