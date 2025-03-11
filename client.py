@@ -6,6 +6,7 @@ def server_connection(server_ip, server_port):
     client_socket.connect((server_ip, server_port))
     recive = client_socket.recv(1024).decode()
     if recive == "succesfully connected":
+        print(recive)
         recive_thread = threading.Thread(target=recive_messages, args=(client_socket,), daemon=True)
         recive_thread.start()
         while True:
