@@ -2,15 +2,11 @@ import socket
 import threading
 
 usernames = {}
-usernamescount = 0
 clients = []
 def client_connection(client_socket, client_ip):
     global usernames
-    global usernamescount
-    usernamescount+=1
-    usernames[client_ip] = f"user{usernamescount}"
-    print(f"{usernames[client_ip]} connected")
     client_socket.send(b"succesfully connected")
+    waiting_room(client_socket, client_ip)
     while True:
         msg = client_socket.recv(1024)
         if not msg:
@@ -20,6 +16,22 @@ def client_connection(client_socket, client_ip):
         message = f"{usernames[client_ip]}: {msg.decode()}"
         send_to_all(message, client_socket)
     client_socket.close()
+
+def waiting_room(client_socket, client_ip):
+    guard = 1
+    while True:
+        client_socket.send(b"insert username")
+        username = client_socket.recv(1024).decode()
+        for user in usernames:
+            if username ==  user:
+                guard = 0
+        if guard == 1:
+            break
+        else:
+            print("this username is taken")
+    usernames[client_ip] = username
+    print(f"{usernames[client_ip]} connected")
+    
 
 def send_to_all(msg, client_socket):
     for client in clients:
